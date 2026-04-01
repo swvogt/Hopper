@@ -235,17 +235,28 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const STORAGE_KEY = 'hopper_todos';
+  const { createClient } = supabase;
+  const db = createClient(
+    'https://vsliqkdgurlthdvoadnq.supabase.co',
+    'sb_publishable_ElNfnqKQC2ClGiMbXgWssw_KrhW-119'
+  );
 
-  let todos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-  // Session-scoped recents (cleared when page refreshes)
-  let sessionRecents = [];
+  let todos = [];
+  let sessionRecents = []; // UUIDs added this session
 
-  function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+  // ── Init ──────────────────────────────────────────
+  async function init() {
+    const { data, error } = await db
+      .from('todos')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (!error) todos = data ?? [];
+    renderRecents();
   }
 
+  // ── Views ─────────────────────────────────────────
   function showView(name) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
@@ -264,33 +275,35 @@
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addTodo(); }
   }
 
-  function addTodo() {
+  // ── Add ───────────────────────────────────────────
+  async function addTodo() {
     const input = document.getElementById('input');
     const text = input.value.trim();
     if (!text) return;
-    const todo = { id: Date.now(), text, done: false };
-    todos.unshift(todo);
-    sessionRecents.unshift(todo.id);
-    save();
     input.value = '';
     input.style.height = 'auto';
+
+    const { data, error } = await db
+      .from('todos')
+      .insert({ text, done: false })
+      .select()
+      .single();
+    if (error) { console.error(error); return; }
+
+    todos.unshift(data);
+    sessionRecents.unshift(data.id);
     renderRecents();
   }
 
+  // ── Render recents ────────────────────────────────
   function renderRecents() {
     const container = document.getElementById('recents');
     const empty = document.getElementById('recents-empty');
-    const items = sessionRecents
-      .map(id => todos.find(t => t.id === id))
-      .filter(Boolean);
+    const items = sessionRecents.map(id => todos.find(t => t.id === id)).filter(Boolean);
 
-    if (items.length === 0) {
-      empty.style.display = '';
-      container.querySelectorAll('.recent-item').forEach(n => n.remove());
-      return;
-    }
-    empty.style.display = 'none';
     container.querySelectorAll('.recent-item').forEach(n => n.remove());
+    if (items.length === 0) { empty.style.display = ''; return; }
+    empty.style.display = 'none';
     items.forEach(todo => {
       const div = document.createElement('div');
       div.className = 'recent-item' + (todo.done ? ' done-item' : '');
@@ -299,6 +312,7 @@
     });
   }
 
+  // ── Render list ───────────────────────────────────
   function renderList() {
     const container = document.getElementById('all-list');
     const empty = document.getElementById('list-empty');
@@ -310,7 +324,6 @@
     todos.forEach(todo => {
       const div = document.createElement('div');
       div.className = 'todo-item' + (todo.done ? ' done' : '');
-      div.dataset.id = todo.id;
 
       const check = document.createElement('button');
       check.className = 'check';
@@ -337,24 +350,29 @@
     });
   }
 
-  function toggleDone(id) {
+  // ── Toggle done ───────────────────────────────────
+  async function toggleDone(id) {
     const todo = todos.find(t => t.id === id);
     if (!todo) return;
-    todo.done = !todo.done;
-    save();
+    const newDone = !todo.done;
+    todo.done = newDone; // optimistic
     renderList();
     renderRecents();
+    const { error } = await db.from('todos').update({ done: newDone }).eq('id', id);
+    if (error) { todo.done = !newDone; renderList(); renderRecents(); }
   }
 
-  function deleteTodo(id) {
-    todos = todos.filter(t => t.id !== id);
+  // ── Delete ────────────────────────────────────────
+  async function deleteTodo(id) {
+    todos = todos.filter(t => t.id !== id); // optimistic
     sessionRecents = sessionRecents.filter(r => r !== id);
-    save();
     renderList();
     renderRecents();
+    const { error } = await db.from('todos').delete().eq('id', id);
+    if (error) console.error(error);
   }
 
-  renderRecents();
+  init();
 </script>
 </body>
 </html>

@@ -18,54 +18,31 @@
       --done-text: #aaa;
       --danger: #d44;
       --radius: 12px;
-      --tab-h: 56px;
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: var(--bg);
       color: var(--text);
-      min-height: 100dvh;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
       max-width: 480px;
       margin: 0 auto;
-    }
-
-    /* ── TABS ── */
-    nav {
-      display: flex;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    nav button {
-      flex: 1;
-      height: var(--tab-h);
-      border: none;
-      background: none;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--muted);
-      cursor: pointer;
-      transition: color .15s;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-    }
-
-    nav button.active {
-      color: var(--text);
-      border-bottom-color: var(--text);
+      overflow: hidden;
     }
 
     /* ── VIEWS ── */
-    .view { display: none; flex: 1; flex-direction: column; padding: 20px 16px; gap: 16px; }
+    .view { display: none; flex: 1; flex-direction: column; overflow: hidden; }
     .view.active { display: flex; }
 
     /* ── ADD SCREEN ── */
+    #view-add {
+      justify-content: center;
+      padding: 0 24px;
+      gap: 0;
+    }
+
     .add-box {
       display: flex;
       gap: 8px;
@@ -73,17 +50,17 @@
 
     .add-box textarea {
       flex: 1;
-      padding: 12px 14px;
+      padding: 14px 16px;
       border: 1.5px solid var(--border);
       border-radius: var(--radius);
-      font-size: 16px;
+      font-size: 17px;
       font-family: inherit;
       resize: none;
       line-height: 1.4;
       outline: none;
       background: var(--surface);
       color: var(--text);
-      min-height: 52px;
+      min-height: 54px;
       max-height: 120px;
       overflow-y: auto;
       transition: border-color .15s;
@@ -94,8 +71,8 @@
 
     .add-box button {
       align-self: flex-end;
-      padding: 0 18px;
-      height: 52px;
+      padding: 0 20px;
+      height: 54px;
       border-radius: var(--radius);
       border: none;
       background: var(--accent);
@@ -109,7 +86,16 @@
 
     .add-box button:active { opacity: .75; }
 
-    /* ── RECENTS ── */
+    /* ── RECENTS (below input) ── */
+    .recents-wrap {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 40dvh;
+      overflow-y: auto;
+    }
+
     .section-label {
       font-size: 11px;
       font-weight: 600;
@@ -118,7 +104,7 @@
       color: var(--muted);
     }
 
-    .recent-list { display: flex; flex-direction: column; gap: 6px; flex: 1; overflow-y: auto; }
+    .recent-list { display: flex; flex-direction: column; gap: 6px; }
 
     .recent-item {
       background: var(--surface);
@@ -132,15 +118,56 @@
 
     .recent-item.done-item { color: var(--done-text); text-decoration: line-through; background: var(--done-bg); }
 
-    .empty-hint {
-      font-size: 14px;
-      color: var(--muted);
+    /* list link */
+    .list-link {
+      margin-top: 20px;
       text-align: center;
-      padding: 24px 0;
     }
 
-    /* ── ALL LIST ── */
-    .todo-list { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow-y: auto; }
+    .list-link button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: color .15s;
+    }
+
+    .list-link button:hover { color: var(--text); }
+
+    /* ── LIST SCREEN ── */
+    #view-list {
+      padding: 0;
+    }
+
+    .list-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .list-header button.back {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .list-header h1 {
+      font-size: 17px;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .todo-list { display: flex; flex-direction: column; gap: 8px; padding: 16px; flex: 1; overflow-y: auto; }
 
     .todo-item {
       display: flex;
@@ -205,33 +232,42 @@
     }
 
     .todo-item .del:hover { color: var(--danger); }
+
+    .empty-hint {
+      font-size: 14px;
+      color: var(--muted);
+      text-align: center;
+      padding: 32px 0;
+    }
   </style>
 </head>
 <body>
 
-<nav>
-  <button class="active" onclick="showView('add')">Add</button>
-  <button onclick="showView('list')">All Todos</button>
-</nav>
-
 <!-- ADD VIEW -->
 <div id="view-add" class="view active">
   <div class="add-box">
-    <textarea id="input" placeholder="Describe a todo or goal…" rows="1" oninput="autosize(this)" onkeydown="enterAdd(event)"></textarea>
+    <textarea id="input" placeholder="What do you need to do?" rows="1" oninput="autosize(this)" onkeydown="enterAdd(event)"></textarea>
     <button onclick="addTodo()">Add</button>
   </div>
 
-  <span class="section-label">Recents</span>
+  <div class="recents-wrap" id="recents-wrap" style="display:none">
+    <span class="section-label">Recents</span>
+    <div class="recent-list" id="recents"></div>
+  </div>
 
-  <div class="recent-list" id="recents">
-    <p class="empty-hint" id="recents-empty">Nothing added yet.</p>
+  <div class="list-link">
+    <button onclick="showView('list', this)">See all todos →</button>
   </div>
 </div>
 
 <!-- LIST VIEW -->
 <div id="view-list" class="view">
+  <div class="list-header">
+    <button class="back" onclick="showView('add', this)">←</button>
+    <h1>All Todos</h1>
+  </div>
   <div class="todo-list" id="all-list">
-    <p class="empty-hint" id="list-empty">No todos yet. Add one!</p>
+    <p class="empty-hint" id="list-empty">No todos yet.</p>
   </div>
 </div>
 
@@ -244,9 +280,8 @@
   );
 
   let todos = [];
-  let sessionRecents = []; // UUIDs added this session
+  let sessionRecents = [];
 
-  // ── Init ──────────────────────────────────────────
   async function init() {
     const { data, error } = await db
       .from('todos')
@@ -256,12 +291,9 @@
     renderRecents();
   }
 
-  // ── Views ─────────────────────────────────────────
   function showView(name) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
     document.getElementById('view-' + name).classList.add('active');
-    event.currentTarget.classList.add('active');
     if (name === 'list') renderList();
     if (name === 'add') renderRecents();
   }
@@ -275,7 +307,6 @@
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addTodo(); }
   }
 
-  // ── Add ───────────────────────────────────────────
   async function addTodo() {
     const input = document.getElementById('input');
     const text = input.value.trim();
@@ -295,15 +326,14 @@
     renderRecents();
   }
 
-  // ── Render recents ────────────────────────────────
   function renderRecents() {
+    const wrap = document.getElementById('recents-wrap');
     const container = document.getElementById('recents');
-    const empty = document.getElementById('recents-empty');
     const items = sessionRecents.map(id => todos.find(t => t.id === id)).filter(Boolean);
 
-    container.querySelectorAll('.recent-item').forEach(n => n.remove());
-    if (items.length === 0) { empty.style.display = ''; return; }
-    empty.style.display = 'none';
+    if (items.length === 0) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'flex';
+    container.innerHTML = '';
     items.forEach(todo => {
       const div = document.createElement('div');
       div.className = 'recent-item' + (todo.done ? ' done-item' : '');
@@ -312,7 +342,6 @@
     });
   }
 
-  // ── Render list ───────────────────────────────────
   function renderList() {
     const container = document.getElementById('all-list');
     const empty = document.getElementById('list-empty');
@@ -327,7 +356,6 @@
 
       const check = document.createElement('button');
       check.className = 'check';
-      check.setAttribute('aria-label', todo.done ? 'Mark undone' : 'Mark done');
       check.innerHTML = `<svg width="12" height="10" viewBox="0 0 12 10" fill="none">
         <path d="M1 5l3.5 3.5L11 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>`;
@@ -339,7 +367,6 @@
 
       const del = document.createElement('button');
       del.className = 'del';
-      del.setAttribute('aria-label', 'Delete');
       del.textContent = '×';
       del.onclick = () => deleteTodo(todo.id);
 
@@ -350,21 +377,19 @@
     });
   }
 
-  // ── Toggle done ───────────────────────────────────
   async function toggleDone(id) {
     const todo = todos.find(t => t.id === id);
     if (!todo) return;
     const newDone = !todo.done;
-    todo.done = newDone; // optimistic
+    todo.done = newDone;
     renderList();
     renderRecents();
     const { error } = await db.from('todos').update({ done: newDone }).eq('id', id);
     if (error) { todo.done = !newDone; renderList(); renderRecents(); }
   }
 
-  // ── Delete ────────────────────────────────────────
   async function deleteTodo(id) {
-    todos = todos.filter(t => t.id !== id); // optimistic
+    todos = todos.filter(t => t.id !== id);
     sessionRecents = sessionRecents.filter(r => r !== id);
     renderList();
     renderRecents();

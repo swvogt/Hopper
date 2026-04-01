@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#ffffff">
+  <title>To-Do</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #fff;
+      color: #111;
+    }
+
+    /* ── Views ── */
+    .view {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .view.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(12px);
+    }
+
+    /* ════════════════════════════
+       ADD VIEW
+    ════════════════════════════ */
+    #view-add {
+      background: #fff;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .add-scroll {
+      flex: 1;
+      overflow: hidden;
+      padding: 48px 28px 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .add-input-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    #add-input {
+      flex: 1;
+      font-size: 28px;
+      font-weight: 500;
+      line-height: 1.3;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: #111;
+      caret-color: #111;
+      -webkit-appearance: none;
+      resize: none;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    #add-input::placeholder {
+      color: #ccc;
+    }
+
+    .pending-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .pending-item {
+      font-size: 16px;
+      color: #999;
+      padding-left: 15px;
+      line-height: 1.4;
+      position: relative;
+    }
+
+    .pending-item::before {
+      content: "–";
+      position: absolute;
+      left: 0;
+      color: #ddd;
+    }
+
+    .add-footer {
+      flex-shrink: 0;
+      padding: 16px 28px;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom));
+    }
+
+    .btn-done {
+      width: 100%;
+      height: 52px;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-done:active {
+      background: #444;
+    }
+
+    /* ════════════════════════════
+       LIST VIEW
+    ════════════════════════════ */
+    #view-list {
+      background: #f5f5f5;
+    }
+
+    .list-header {
+      flex-shrink: 0;
+      background: #fff;
+      border-bottom: 1px solid #e8e8e8;
+      padding: 16px 20px;
+      padding-top: calc(16px + env(safe-area-inset-top));
+    }
+
+    .list-header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .list-scroll {
+      flex: 1;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 12px 16px;
+    }
+
+    .task-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* swipe-to-delete wrapper */
+    .item-wrap {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .delete-bg {
+      position: absolute;
+      inset: 0;
+      background: #e03131;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 20px;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-height: 52px;
+      padding: 14px 16px;
+      background: #fff;
+      border: 1px solid #e8e8e8;
+      border-radius: 10px;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      transition: transform 0.15s ease;
+      will-change: transform;
+    }
+
+    .item:active { background: #f0f0f0; }
+
+    .item.done .label { text-decoration: line-through; color: #bbb; }
+    .item.done .check { opacity: 0.5; }
+
+    .check {
+      width: 24px;
+      height: 24px;
+      border: 1.5px solid #ccc;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .item.done .check {
+      background: #111;
+      border-color: #111;
+    }
+
+    .item.done .check::after {
+      content: "";
+      display: block;
+      width: 6px;
+      height: 10px;
+      border: 2px solid #fff;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg) translate(-1px, -1px);
+    }
+
+    .label { font-size: 16px; line-height: 1.3; }
+
+    .empty {
+      font-size: 15px;
+      color: #bbb;
+      text-align: center;
+      padding: 48px 0;
+    }
+
+    .list-footer {
+      flex-shrink: 0;
+      padding: 16px 28px;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom));
+      background: #f5f5f5;
+    }
+
+    .btn-add {
+      width: 100%;
+      height: 52px;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-add:active { background: #444; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Add View ── -->
+  <div id="view-add" class="view">
+    <div class="add-scroll" id="add-scroll">
+      <div class="add-input-wrap">
+        <textarea id="add-input" rows="1" placeholder="What do you need to do?" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
+      </div>
+      <ul class="pending-list" id="pending-list"></ul>
+    </div>
+    <div class="add-footer">
+      <button class="btn-done" onclick="showList()">Done</button>
+    </div>
+  </div>
+
+  <!-- ── List View ── -->
+  <div id="view-list" class="view hidden">
+    <div class="list-header">
+      <h1>To-Do</h1>
+    </div>
+    <div class="list-scroll">
+      <ul class="task-list" id="task-list"></ul>
+      <p class="empty" id="empty">No tasks yet.</p>
+    </div>
+    <div class="list-footer">
+      <button class="btn-add" onclick="showAdd()">+ Add Tasks</button>
+    </div>
+  </div>
+
+  <script>
+    const addInput    = document.getElementById("add-input");
+    const pendingList = document.getElementById("pending-list");
+    const taskList    = document.getElementById("task-list");
+    const empty       = document.getElementById("empty");
+    const addScroll   = document.getElementById("add-scroll");
+
+    let items = [];
+    try { items = JSON.parse(localStorage.getItem("todos") || "[]"); } catch(e) {}
+
+    // Auto-resize textarea
+    addInput.addEventListener("input", () => {
+      addInput.style.height = "auto";
+      addInput.style.height = addInput.scrollHeight + "px";
+    });
+
+    addInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        commitItem();
+      }
+    });
+
+    function sanitize(str) {
+      return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+
+    function commitItem() {
+      const text = addInput.value.trim();
+      if (!text) return;
+      items.push({ text, done: false });
+      save();
+
+      // Append to pending list
+      const li = document.createElement("li");
+      li.className = "pending-item";
+      li.textContent = text;
+      pendingList.appendChild(li);
+
+      // Reset input and scroll to bottom
+      addInput.value = "";
+      addInput.style.height = "auto";
+      setTimeout(() => {
+        addScroll.scrollTop = addScroll.scrollHeight;
+      }, 0);
+    }
+
+    function showList() {
+      commitItem(); // commit anything still in the field
+      document.getElementById("view-add").classList.add("hidden");
+      document.getElementById("view-list").classList.remove("hidden");
+      renderList();
+    }
+
+    function showAdd() {
+      pendingList.innerHTML = "";
+      addInput.value = "";
+      addInput.style.height = "auto";
+      document.getElementById("view-list").classList.add("hidden");
+      document.getElementById("view-add").classList.remove("hidden");
+      setTimeout(() => addInput.focus(), 50);
+    }
+
+    function renderList() {
+      taskList.innerHTML = "";
+      empty.style.display = items.length ? "none" : "block";
+      items.forEach((item, i) => {
+        const wrap = document.createElement("li");
+        wrap.className = "item-wrap";
+        wrap.innerHTML = `<div class="delete-bg">Delete</div>`;
+
+        const row = document.createElement("div");
+        row.className = "item" + (item.done ? " done" : "");
+        row.innerHTML = `<span class="check"></span><span class="label">${sanitize(item.text)}</span>`;
+        row.addEventListener("click", () => toggle(i));
+        wrap.appendChild(row);
+
+        addSwipe(wrap, row, i);
+        taskList.appendChild(wrap);
+      });
+    }
+
+    function addSwipe(wrap, row, index) {
+      let startX = 0, currentX = 0, swiping = false;
+      const THRESHOLD = 80;
+
+      function onStart(x) {
+        startX = x;
+        currentX = 0;
+        swiping = true;
+        row.style.transition = "none";
+      }
+
+      function onMove(x) {
+        if (!swiping) return;
+        currentX = Math.min(0, x - startX);
+        row.style.transform = `translateX(${currentX}px)`;
+      }
+
+      function onEnd() {
+        if (!swiping) return;
+        swiping = false;
+        row.style.transition = "";
+        if (currentX < -THRESHOLD) {
+          row.style.transform = `translateX(-100%)`;
+          setTimeout(() => deleteItem(index), 180);
+        } else {
+          row.style.transform = "";
+        }
+      }
+
+      wrap.addEventListener("touchstart", e => onStart(e.touches[0].clientX), { passive: true });
+      wrap.addEventListener("touchmove",  e => onMove(e.touches[0].clientX),  { passive: true });
+      wrap.addEventListener("touchend",   onEnd);
+      // mouse fallback for desktop/preview
+      wrap.addEventListener("mousedown",  e => onStart(e.clientX));
+      wrap.addEventListener("mousemove",  e => { if (e.buttons) onMove(e.clientX); });
+      wrap.addEventListener("mouseup",    onEnd);
+      wrap.addEventListener("mouseleave", onEnd);
+    }
+
+    function deleteItem(index) {
+      items.splice(index, 1);
+      save();
+      renderList();
+    }
+
+    function toggle(i) {
+      items[i].done = !items[i].done;
+      save();
+      renderList();
+    }
+
+    function save() {
+      try { localStorage.setItem("todos", JSON.stringify(items)); } catch(e) {}
+    }
+
+    // Start on add view if no tasks, list view if returning
+    if (items.length > 0) {
+      showList();
+    }
+  </script>
+</body>
+</html>

@@ -236,6 +236,232 @@
 
     .todo-item .del:hover { color: var(--danger); }
 
+    /* ── STALE BADGE ── */
+    .stale-badge {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .03em;
+      padding: 2px 7px;
+      border-radius: 20px;
+      flex-shrink: 0;
+      align-self: center;
+      white-space: nowrap;
+    }
+
+    .stale-fresh  { background: #e6f4ea; color: #2d7a3a; }
+    .stale-aging  { background: #fff8e1; color: #8a6600; }
+    .stale-stale  { background: #fff0e0; color: #b05000; }
+    .stale-dead   { background: #fdecea; color: #b00020; }
+
+    .todo-item.done .stale-badge { opacity: .4; }
+
+    /* ── TODO BODY (text + meta) ── */
+    .todo-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .todo-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    /* ── DEADLINE CHIP ── */
+    .dl-chip {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .dl-overdue { background: #fdecea; color: #b00020; }
+    .dl-today   { background: #fff0e0; color: #b05000; }
+    .dl-soon    { background: #fff8e1; color: #8a6600; }
+    .dl-future  { background: #e8f0fe; color: #1a56b0; }
+
+    /* ── ACTION CHIP ── */
+    .action-chip {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: #f0f0f8;
+      color: #444;
+      white-space: nowrap;
+    }
+
+    .dl-empty   { background: #f0f0ec; color: var(--muted); font-weight: 500; }
+    .action-empty { background: #f0f0ec; color: var(--muted); font-weight: 500; }
+
+    .todo-item.done .dl-chip,
+    .todo-item.done .action-chip,
+    .todo-item.done .dl-empty,
+    .todo-item.done .action-empty { opacity: .4; }
+
+    .todo-item { cursor: pointer; }
+    .todo-item:hover { background: #fafaf8; }
+    .todo-item.done:hover { background: var(--done-bg); }
+    .todo-item .check, .todo-item .del { cursor: pointer; }
+
+    /* ── DETAIL VIEW ── */
+    #view-detail { padding: 0; }
+
+    .detail-header {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      gap: 8px;
+    }
+
+    .detail-header .back-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: color .15s;
+      white-space: nowrap;
+    }
+
+    .detail-header .back-btn:hover { color: var(--text); }
+
+    .detail-header .spacer { flex: 1; }
+
+    .detail-header .delete-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: color .15s;
+    }
+
+    .detail-header .delete-btn:hover { color: var(--danger); }
+
+    .detail-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 20px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .detail-body textarea {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 16px;
+      font-family: inherit;
+      resize: none;
+      line-height: 1.5;
+      outline: none;
+      background: var(--surface);
+      color: var(--text);
+      min-height: 80px;
+      max-height: 200px;
+      overflow-y: auto;
+      transition: border-color .15s;
+    }
+
+    .detail-body textarea:focus { border-color: var(--accent); }
+
+    .detail-done-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .done-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      transition: background .15s, border-color .15s;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .done-toggle.is-done {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .detail-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .field-group label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .field-group input {
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      width: 100%;
+      transition: border-color .15s;
+    }
+
+    .field-group input:focus { border-color: var(--accent); }
+
+    .detail-footer {
+      padding: 16px 20px;
+      background: var(--bg);
+    }
+
+    .save-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+
+    .save-btn:active { opacity: .75; }
+
     .empty-hint {
       font-size: 14px;
       color: var(--muted);
@@ -274,6 +500,38 @@
   </div>
 </div>
 
+<!-- DETAIL VIEW -->
+<div id="view-detail" class="view">
+  <div class="detail-header">
+    <button class="back-btn" onclick="showView('list')">← Todos</button>
+    <div class="spacer"></div>
+    <button class="delete-btn" onclick="deleteFromDetail()">Delete</button>
+  </div>
+  <div class="detail-body">
+    <textarea id="det-text" rows="3" oninput="autosize(this)"></textarea>
+    <div class="detail-done-row">
+      <button class="done-toggle" id="det-done-btn" onclick="toggleDetailDone()">Mark done</button>
+    </div>
+    <div class="detail-fields">
+      <div class="field-group">
+        <label>Deadline</label>
+        <input type="date" id="det-deadline">
+      </div>
+      <div class="field-group">
+        <label>Action start</label>
+        <input type="datetime-local" id="det-action-start">
+      </div>
+      <div class="field-group">
+        <label>Duration (minutes)</label>
+        <input type="number" id="det-duration" placeholder="e.g. 30" min="5" step="5">
+      </div>
+    </div>
+  </div>
+  <div class="detail-footer">
+    <button class="save-btn" onclick="saveDetail()">Save</button>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   const { createClient } = supabase;
@@ -284,6 +542,38 @@
 
   let todos = [];
   let sessionRecents = [];
+
+  function formatDeadline(dateStr) {
+    if (!dateStr) return null;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const due = new Date(dateStr + 'T00:00:00');
+    const diff = Math.round((due - today) / 86400000);
+    if (diff < 0)       return { label: Math.abs(diff) + 'd overdue', cls: 'dl-overdue' };
+    if (diff === 0)     return { label: 'Due today',                  cls: 'dl-today'   };
+    if (diff <= 3)      return { label: 'Due in ' + diff + 'd',       cls: 'dl-soon'    };
+    return { label: 'Due ' + due.toLocaleDateString([], { month: 'short', day: 'numeric' }), cls: 'dl-future' };
+  }
+
+  function formatAction(startStr, mins) {
+    if (!startStr) return null;
+    const d = new Date(startStr);
+    const date = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    const time = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    let dur = '';
+    if (mins) {
+      const h = Math.floor(mins / 60), m = mins % 60;
+      dur = ' · ' + (h && m ? h + 'h ' + m + 'm' : h ? h + 'h' : m + 'min');
+    }
+    return date + ' · ' + time + dur;
+  }
+
+  function staleBand(touchedAt) {
+    const days = (Date.now() - new Date(touchedAt)) / 86400000;
+    if (days <= 2)  return { label: 'Fresh',  cls: 'stale-fresh' };
+    if (days <= 7)  return { label: 'Aging',  cls: 'stale-aging' };
+    if (days <= 14) return { label: 'Stale',  cls: 'stale-stale' };
+    return              { label: 'Dead',   cls: 'stale-dead'  };
+  }
 
   async function init() {
     const { data, error } = await db
@@ -362,19 +652,48 @@
       check.innerHTML = `<svg width="12" height="10" viewBox="0 0 12 10" fill="none">
         <path d="M1 5l3.5 3.5L11 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>`;
-      check.onclick = () => toggleDone(todo.id);
+      check.onclick = (e) => { e.stopPropagation(); toggleDone(todo.id); };
+
+      const body = document.createElement('div');
+      body.className = 'todo-body';
 
       const text = document.createElement('span');
       text.className = 'text';
       text.textContent = todo.text;
+      body.appendChild(text);
+
+      const dl = formatDeadline(todo.deadline);
+      const ac = formatAction(todo.action_start, todo.action_duration_minutes);
+      const meta = document.createElement('div');
+      meta.className = 'todo-meta';
+
+      const dlChip = document.createElement('span');
+      dlChip.className = dl ? 'dl-chip ' + dl.cls : 'dl-chip dl-empty';
+      dlChip.textContent = dl ? dl.label : 'No deadline';
+      meta.appendChild(dlChip);
+
+      const acChip = document.createElement('span');
+      acChip.className = ac ? 'action-chip' : 'action-chip action-empty';
+      acChip.textContent = ac || 'No action';
+      meta.appendChild(acChip);
+
+      body.appendChild(meta);
+
+      const band = staleBand(todo.touched_at || todo.created_at);
+      const badge = document.createElement('span');
+      badge.className = 'stale-badge ' + band.cls;
+      badge.textContent = band.label;
 
       const del = document.createElement('button');
       del.className = 'del';
       del.textContent = '×';
-      del.onclick = () => deleteTodo(todo.id);
+      del.onclick = (e) => { e.stopPropagation(); deleteTodo(todo.id); };
+
+      div.onclick = () => showDetail(todo.id);
 
       div.appendChild(check);
-      div.appendChild(text);
+      div.appendChild(body);
+      div.appendChild(badge);
       div.appendChild(del);
       container.appendChild(div);
     });
@@ -387,7 +706,9 @@
     todo.done = newDone;
     renderList();
     renderRecents();
-    const { error } = await db.from('todos').update({ done: newDone }).eq('id', id);
+    const now = new Date().toISOString();
+    todo.touched_at = now;
+    const { error } = await db.from('todos').update({ done: newDone, touched_at: now }).eq('id', id);
     if (error) { todo.done = !newDone; renderList(); renderRecents(); }
   }
 
@@ -398,6 +719,82 @@
     renderRecents();
     const { error } = await db.from('todos').delete().eq('id', id);
     if (error) console.error(error);
+  }
+
+  let detailId = null;
+
+  function showDetail(id) {
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return;
+    detailId = id;
+
+    const textEl = document.getElementById('det-text');
+    textEl.value = todo.text;
+    textEl.style.height = 'auto';
+    textEl.style.height = Math.min(textEl.scrollHeight, 200) + 'px';
+
+    const doneBtn = document.getElementById('det-done-btn');
+    doneBtn.textContent = todo.done ? 'Mark not done' : 'Mark done';
+    doneBtn.classList.toggle('is-done', todo.done);
+
+    document.getElementById('det-deadline').value = todo.deadline || '';
+
+    if (todo.action_start) {
+      const d = new Date(todo.action_start);
+      const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+        .toISOString().slice(0, 16);
+      document.getElementById('det-action-start').value = local;
+    } else {
+      document.getElementById('det-action-start').value = '';
+    }
+
+    document.getElementById('det-duration').value = todo.action_duration_minutes || '';
+
+    showView('detail');
+  }
+
+  function toggleDetailDone() {
+    const todo = todos.find(t => t.id === detailId);
+    if (!todo) return;
+    todo.done = !todo.done;
+    const doneBtn = document.getElementById('det-done-btn');
+    doneBtn.textContent = todo.done ? 'Mark not done' : 'Mark done';
+    doneBtn.classList.toggle('is-done', todo.done);
+  }
+
+  async function saveDetail() {
+    const todo = todos.find(t => t.id === detailId);
+    if (!todo) return;
+
+    const text = document.getElementById('det-text').value.trim();
+    if (!text) return;
+
+    const deadlineVal = document.getElementById('det-deadline').value;
+    const actionStartVal = document.getElementById('det-action-start').value;
+    const durationVal = document.getElementById('det-duration').value;
+    const now = new Date().toISOString();
+
+    const patch = {
+      text,
+      done: todo.done,
+      touched_at: now,
+      deadline: deadlineVal || null,
+      action_start: actionStartVal ? new Date(actionStartVal).toISOString() : null,
+      action_duration_minutes: durationVal ? parseInt(durationVal, 10) : null,
+    };
+
+    Object.assign(todo, patch);
+    const { error } = await db.from('todos').update(patch).eq('id', detailId);
+    if (error) { console.error(error); return; }
+
+    showView('list');
+  }
+
+  async function deleteFromDetail() {
+    if (!detailId) return;
+    await deleteTodo(detailId);
+    detailId = null;
+    showView('list');
   }
 
   init();

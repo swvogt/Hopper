@@ -2,438 +2,359 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="theme-color" content="#ffffff">
-  <title>To-Do</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todos</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html, body {
-      height: 100%;
-      overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #fff;
-      color: #111;
+    :root {
+      --bg: #f5f5f0;
+      --surface: #ffffff;
+      --border: #e2e2dc;
+      --text: #1a1a1a;
+      --muted: #888880;
+      --accent: #1a1a1a;
+      --done-bg: #f0f0ec;
+      --done-text: #aaa;
+      --danger: #d44;
+      --radius: 12px;
+      --tab-h: 56px;
     }
 
-    /* ── Views ── */
-    .view {
-      position: absolute;
-      inset: 0;
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
-      transition: opacity 0.2s ease, transform 0.2s ease;
+      max-width: 480px;
+      margin: 0 auto;
     }
 
-    .view.hidden {
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(12px);
-    }
-
-    /* ════════════════════════════
-       ADD VIEW
-    ════════════════════════════ */
-    #view-add {
-      background: #fff;
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-
-    .add-scroll {
-      flex: 1;
-      overflow: hidden;
-      padding: 48px 28px 24px;
+    /* ── TABS ── */
+    nav {
       display: flex;
-      flex-direction: column;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
-    .add-input-wrap {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      margin-bottom: 32px;
-    }
-
-    #add-input {
+    nav button {
       flex: 1;
-      font-size: 28px;
+      height: var(--tab-h);
+      border: none;
+      background: none;
+      font-size: 14px;
       font-weight: 500;
-      line-height: 1.3;
-      border: none;
-      outline: none;
-      background: transparent;
-      color: #111;
-      caret-color: #111;
-      -webkit-appearance: none;
-      resize: none;
-      width: 100%;
-      overflow: hidden;
-    }
-
-    #add-input::placeholder {
-      color: #ccc;
-    }
-
-    .pending-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .pending-item {
-      font-size: 16px;
-      color: #999;
-      padding-left: 15px;
-      line-height: 1.4;
-      position: relative;
-    }
-
-    .pending-item::before {
-      content: "–";
-      position: absolute;
-      left: 0;
-      color: #ddd;
-    }
-
-    .add-footer {
-      flex-shrink: 0;
-      padding: 16px 28px;
-      padding-bottom: calc(16px + env(safe-area-inset-bottom));
-    }
-
-    .btn-done {
-      width: 100%;
-      height: 52px;
-      background: #111;
-      color: #fff;
-      border: none;
-      border-radius: 14px;
-      font-size: 17px;
-      font-weight: 600;
-      letter-spacing: 0.2px;
+      color: var(--muted);
       cursor: pointer;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
+      transition: color .15s;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
     }
 
-    .btn-done:active {
-      background: #444;
+    nav button.active {
+      color: var(--text);
+      border-bottom-color: var(--text);
     }
 
-    /* ════════════════════════════
-       LIST VIEW
-    ════════════════════════════ */
-    #view-list {
-      background: #f5f5f5;
-    }
+    /* ── VIEWS ── */
+    .view { display: none; flex: 1; flex-direction: column; padding: 20px 16px; gap: 16px; }
+    .view.active { display: flex; }
 
-    .list-header {
-      flex-shrink: 0;
-      background: #fff;
-      border-bottom: 1px solid #e8e8e8;
-      padding: 16px 20px;
-      padding-top: calc(16px + env(safe-area-inset-top));
-    }
-
-    .list-header h1 {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
-
-    .list-scroll {
-      flex: 1;
-      overflow-x: hidden;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      padding: 12px 16px;
-    }
-
-    .task-list {
-      list-style: none;
+    /* ── ADD SCREEN ── */
+    .add-box {
       display: flex;
-      flex-direction: column;
       gap: 8px;
     }
 
-    /* swipe-to-delete wrapper */
-    .item-wrap {
-      position: relative;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .delete-bg {
-      position: absolute;
-      inset: 0;
-      background: #e03131;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      padding-right: 20px;
-      border-radius: 10px;
-      color: #fff;
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: 0.2px;
-    }
-
-    .item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
+    .add-box textarea {
+      flex: 1;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 16px;
+      font-family: inherit;
+      resize: none;
+      line-height: 1.4;
+      outline: none;
+      background: var(--surface);
+      color: var(--text);
       min-height: 52px;
-      padding: 14px 16px;
-      background: #fff;
-      border: 1px solid #e8e8e8;
-      border-radius: 10px;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      position: relative;
-      transition: transform 0.15s ease;
-      will-change: transform;
+      max-height: 120px;
+      overflow-y: auto;
+      transition: border-color .15s;
     }
 
-    .item:active { background: #f0f0f0; }
+    .add-box textarea:focus { border-color: var(--accent); }
+    .add-box textarea::placeholder { color: var(--muted); }
 
-    .item.done .label { text-decoration: line-through; color: #bbb; }
-    .item.done .check { opacity: 0.5; }
+    .add-box button {
+      align-self: flex-end;
+      padding: 0 18px;
+      height: 52px;
+      border-radius: var(--radius);
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity .15s;
+    }
 
-    .check {
-      width: 24px;
-      height: 24px;
-      border: 1.5px solid #ccc;
+    .add-box button:active { opacity: .75; }
+
+    /* ── RECENTS ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .recent-list { display: flex; flex-direction: column; gap: 6px; flex: 1; overflow-y: auto; }
+
+    .recent-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      font-size: 15px;
+      line-height: 1.4;
+      color: var(--text);
+    }
+
+    .recent-item.done-item { color: var(--done-text); text-decoration: line-through; background: var(--done-bg); }
+
+    .empty-hint {
+      font-size: 14px;
+      color: var(--muted);
+      text-align: center;
+      padding: 24px 0;
+    }
+
+    /* ── ALL LIST ── */
+    .todo-list { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow-y: auto; }
+
+    .todo-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      transition: background .15s;
+    }
+
+    .todo-item.done { background: var(--done-bg); }
+
+    .todo-item .check {
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: none;
       flex-shrink: 0;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: background .15s, border-color .15s;
+      margin-top: 1px;
     }
 
-    .item.done .check {
-      background: #111;
-      border-color: #111;
+    .todo-item.done .check {
+      background: var(--accent);
+      border-color: var(--accent);
     }
 
-    .item.done .check::after {
-      content: "";
-      display: block;
-      width: 6px;
-      height: 10px;
-      border: 2px solid #fff;
-      border-top: none;
-      border-left: none;
-      transform: rotate(45deg) translate(-1px, -1px);
-    }
+    .check svg { display: none; }
+    .todo-item.done .check svg { display: block; }
 
-    .label { font-size: 16px; line-height: 1.3; }
-
-    .empty {
+    .todo-item .text {
+      flex: 1;
       font-size: 15px;
-      color: #bbb;
-      text-align: center;
-      padding: 48px 0;
+      line-height: 1.45;
+      word-break: break-word;
+      transition: color .15s;
     }
 
-    .list-footer {
-      flex-shrink: 0;
-      padding: 16px 28px;
-      padding-bottom: calc(16px + env(safe-area-inset-bottom));
-      background: #f5f5f5;
+    .todo-item.done .text {
+      color: var(--done-text);
+      text-decoration: line-through;
     }
 
-    .btn-add {
-      width: 100%;
-      height: 52px;
-      background: #111;
-      color: #fff;
+    .todo-item .del {
+      background: none;
       border: none;
-      border-radius: 14px;
-      font-size: 17px;
-      font-weight: 600;
-      letter-spacing: 0.2px;
+      color: var(--muted);
       cursor: pointer;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
+      padding: 2px 4px;
+      font-size: 18px;
+      line-height: 1;
+      border-radius: 6px;
+      transition: color .15s;
+      flex-shrink: 0;
     }
 
-    .btn-add:active { background: #444; }
+    .todo-item .del:hover { color: var(--danger); }
   </style>
 </head>
 <body>
 
-  <!-- ── Add View ── -->
-  <div id="view-add" class="view">
-    <div class="add-scroll" id="add-scroll">
-      <div class="add-input-wrap">
-        <textarea id="add-input" rows="1" placeholder="What do you need to do?" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
-      </div>
-      <ul class="pending-list" id="pending-list"></ul>
-    </div>
-    <div class="add-footer">
-      <button class="btn-done" onclick="showList()">Done</button>
-    </div>
+<nav>
+  <button class="active" onclick="showView('add')">Add</button>
+  <button onclick="showView('list')">All Todos</button>
+</nav>
+
+<!-- ADD VIEW -->
+<div id="view-add" class="view active">
+  <div class="add-box">
+    <textarea id="input" placeholder="Describe a todo or goal…" rows="1" oninput="autosize(this)" onkeydown="enterAdd(event)"></textarea>
+    <button onclick="addTodo()">Add</button>
   </div>
 
-  <!-- ── List View ── -->
-  <div id="view-list" class="view hidden">
-    <div class="list-header">
-      <h1>To-Do</h1>
-    </div>
-    <div class="list-scroll">
-      <ul class="task-list" id="task-list"></ul>
-      <p class="empty" id="empty">No tasks yet.</p>
-    </div>
-    <div class="list-footer">
-      <button class="btn-add" onclick="showAdd()">+ Add Tasks</button>
-    </div>
+  <span class="section-label">Recents</span>
+
+  <div class="recent-list" id="recents">
+    <p class="empty-hint" id="recents-empty">Nothing added yet.</p>
   </div>
+</div>
 
-  <script>
-    const addInput    = document.getElementById("add-input");
-    const pendingList = document.getElementById("pending-list");
-    const taskList    = document.getElementById("task-list");
-    const empty       = document.getElementById("empty");
-    const addScroll   = document.getElementById("add-scroll");
+<!-- LIST VIEW -->
+<div id="view-list" class="view">
+  <div class="todo-list" id="all-list">
+    <p class="empty-hint" id="list-empty">No todos yet. Add one!</p>
+  </div>
+</div>
 
-    let items = [];
-    try { items = JSON.parse(localStorage.getItem("todos") || "[]"); } catch(e) {}
+<script>
+  const STORAGE_KEY = 'hopper_todos';
 
-    // Auto-resize textarea
-    addInput.addEventListener("input", () => {
-      addInput.style.height = "auto";
-      addInput.style.height = addInput.scrollHeight + "px";
+  let todos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  // Session-scoped recents (cleared when page refreshes)
+  let sessionRecents = [];
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+  }
+
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+    event.currentTarget.classList.add('active');
+    if (name === 'list') renderList();
+    if (name === 'add') renderRecents();
+  }
+
+  function autosize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  function enterAdd(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addTodo(); }
+  }
+
+  function addTodo() {
+    const input = document.getElementById('input');
+    const text = input.value.trim();
+    if (!text) return;
+    const todo = { id: Date.now(), text, done: false };
+    todos.unshift(todo);
+    sessionRecents.unshift(todo.id);
+    save();
+    input.value = '';
+    input.style.height = 'auto';
+    renderRecents();
+  }
+
+  function renderRecents() {
+    const container = document.getElementById('recents');
+    const empty = document.getElementById('recents-empty');
+    const items = sessionRecents
+      .map(id => todos.find(t => t.id === id))
+      .filter(Boolean);
+
+    if (items.length === 0) {
+      empty.style.display = '';
+      container.querySelectorAll('.recent-item').forEach(n => n.remove());
+      return;
+    }
+    empty.style.display = 'none';
+    container.querySelectorAll('.recent-item').forEach(n => n.remove());
+    items.forEach(todo => {
+      const div = document.createElement('div');
+      div.className = 'recent-item' + (todo.done ? ' done-item' : '');
+      div.textContent = todo.text;
+      container.appendChild(div);
     });
+  }
 
-    addInput.addEventListener("keydown", e => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        commitItem();
-      }
+  function renderList() {
+    const container = document.getElementById('all-list');
+    const empty = document.getElementById('list-empty');
+    container.querySelectorAll('.todo-item').forEach(n => n.remove());
+
+    if (todos.length === 0) { empty.style.display = ''; return; }
+    empty.style.display = 'none';
+
+    todos.forEach(todo => {
+      const div = document.createElement('div');
+      div.className = 'todo-item' + (todo.done ? ' done' : '');
+      div.dataset.id = todo.id;
+
+      const check = document.createElement('button');
+      check.className = 'check';
+      check.setAttribute('aria-label', todo.done ? 'Mark undone' : 'Mark done');
+      check.innerHTML = `<svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+        <path d="M1 5l3.5 3.5L11 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+      check.onclick = () => toggleDone(todo.id);
+
+      const text = document.createElement('span');
+      text.className = 'text';
+      text.textContent = todo.text;
+
+      const del = document.createElement('button');
+      del.className = 'del';
+      del.setAttribute('aria-label', 'Delete');
+      del.textContent = '×';
+      del.onclick = () => deleteTodo(todo.id);
+
+      div.appendChild(check);
+      div.appendChild(text);
+      div.appendChild(del);
+      container.appendChild(div);
     });
+  }
 
-    function sanitize(str) {
-      return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-    }
+  function toggleDone(id) {
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return;
+    todo.done = !todo.done;
+    save();
+    renderList();
+    renderRecents();
+  }
 
-    function commitItem() {
-      const text = addInput.value.trim();
-      if (!text) return;
-      items.push({ text, done: false });
-      save();
+  function deleteTodo(id) {
+    todos = todos.filter(t => t.id !== id);
+    sessionRecents = sessionRecents.filter(r => r !== id);
+    save();
+    renderList();
+    renderRecents();
+  }
 
-      // Append to pending list
-      const li = document.createElement("li");
-      li.className = "pending-item";
-      li.textContent = text;
-      pendingList.appendChild(li);
-
-      // Reset input and scroll to bottom
-      addInput.value = "";
-      addInput.style.height = "auto";
-      setTimeout(() => {
-        addScroll.scrollTop = addScroll.scrollHeight;
-      }, 0);
-    }
-
-    function showList() {
-      commitItem(); // commit anything still in the field
-      document.getElementById("view-add").classList.add("hidden");
-      document.getElementById("view-list").classList.remove("hidden");
-      renderList();
-    }
-
-    function showAdd() {
-      pendingList.innerHTML = "";
-      addInput.value = "";
-      addInput.style.height = "auto";
-      document.getElementById("view-list").classList.add("hidden");
-      document.getElementById("view-add").classList.remove("hidden");
-      setTimeout(() => addInput.focus(), 50);
-    }
-
-    function renderList() {
-      taskList.innerHTML = "";
-      empty.style.display = items.length ? "none" : "block";
-      items.forEach((item, i) => {
-        const wrap = document.createElement("li");
-        wrap.className = "item-wrap";
-        wrap.innerHTML = `<div class="delete-bg">Delete</div>`;
-
-        const row = document.createElement("div");
-        row.className = "item" + (item.done ? " done" : "");
-        row.innerHTML = `<span class="check"></span><span class="label">${sanitize(item.text)}</span>`;
-        row.addEventListener("click", () => toggle(i));
-        wrap.appendChild(row);
-
-        addSwipe(wrap, row, i);
-        taskList.appendChild(wrap);
-      });
-    }
-
-    function addSwipe(wrap, row, index) {
-      let startX = 0, currentX = 0, swiping = false;
-      const THRESHOLD = 80;
-
-      function onStart(x) {
-        startX = x;
-        currentX = 0;
-        swiping = true;
-        row.style.transition = "none";
-      }
-
-      function onMove(x) {
-        if (!swiping) return;
-        currentX = Math.min(0, x - startX);
-        row.style.transform = `translateX(${currentX}px)`;
-      }
-
-      function onEnd() {
-        if (!swiping) return;
-        swiping = false;
-        row.style.transition = "";
-        if (currentX < -THRESHOLD) {
-          row.style.transform = `translateX(-100%)`;
-          setTimeout(() => deleteItem(index), 180);
-        } else {
-          row.style.transform = "";
-        }
-      }
-
-      wrap.addEventListener("touchstart", e => onStart(e.touches[0].clientX), { passive: true });
-      wrap.addEventListener("touchmove",  e => onMove(e.touches[0].clientX),  { passive: true });
-      wrap.addEventListener("touchend",   onEnd);
-      // mouse fallback for desktop/preview
-      wrap.addEventListener("mousedown",  e => onStart(e.clientX));
-      wrap.addEventListener("mousemove",  e => { if (e.buttons) onMove(e.clientX); });
-      wrap.addEventListener("mouseup",    onEnd);
-      wrap.addEventListener("mouseleave", onEnd);
-    }
-
-    function deleteItem(index) {
-      items.splice(index, 1);
-      save();
-      renderList();
-    }
-
-    function toggle(i) {
-      items[i].done = !items[i].done;
-      save();
-      renderList();
-    }
-
-    function save() {
-      try { localStorage.setItem("todos", JSON.stringify(items)); } catch(e) {}
-    }
-
-    // Start on add view if no tasks, list view if returning
-    if (items.length > 0) {
-      showList();
-    }
-  </script>
+  renderRecents();
+</script>
 </body>
 </html>

@@ -86,6 +86,13 @@
 
     .add-box button:active { opacity: .75; }
 
+    .add-sliders {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
     /* ── RECENTS (below input) ── */
     .recents-wrap {
       margin-top: 24px;
@@ -246,6 +253,7 @@
     .todo-item {
       display: flex;
       flex-direction: column;
+      flex-shrink: 0;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -261,10 +269,9 @@
     }
 
     .todo-item-bar {
-      height: 3px;
+      height: 4px;
       display: flex;
-      border-radius: 0 0 calc(var(--radius) - 1px) calc(var(--radius) - 1px);
-      overflow: hidden;
+      flex-shrink: 0;
     }
 
     .todo-item-bar-dread {
@@ -277,7 +284,7 @@
       flex-shrink: 0;
     }
 
-    .todo-item.done .todo-item-row { background: var(--done-bg); }
+    .todo-item.done { background: var(--done-bg); }
 
     .todo-item .check {
       width: 22px;
@@ -398,8 +405,8 @@
     .todo-item.done .action-empty { opacity: .4; }
 
     .todo-item { cursor: pointer; }
-    .todo-item:hover .todo-item-row { background: #fafaf8; }
-    .todo-item.done:hover .todo-item-row { background: var(--done-bg); }
+    .todo-item:hover { background: #fafaf8; }
+    .todo-item.done:hover { background: var(--done-bg); }
     .todo-item .check, .todo-item .del { cursor: pointer; }
 
     /* ── DETAIL VIEW ── */
@@ -602,7 +609,7 @@
       color: var(--muted);
     }
 
-    #det-dread {
+    #det-dread, #det-joy, #add-dread, #add-joy {
       -webkit-appearance: none;
       appearance: none;
       width: 100%;
@@ -614,7 +621,10 @@
       background: var(--border);
     }
 
-    #det-dread::-webkit-slider-thumb {
+    #det-dread::-webkit-slider-thumb,
+    #det-joy::-webkit-slider-thumb,
+    #add-dread::-webkit-slider-thumb,
+    #add-joy::-webkit-slider-thumb {
       -webkit-appearance: none;
       width: 26px;
       height: 26px;
@@ -625,40 +635,10 @@
       box-shadow: 0 1px 4px rgba(0,0,0,.15);
     }
 
-    #det-joy {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 100%;
-      height: 8px;
-      border-radius: 4px;
-      outline: none;
-      border: none;
-      cursor: pointer;
-      background: var(--border);
-    }
-
-    #det-joy::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: #fff;
-      border: 2px solid #ccc;
-      cursor: pointer;
-      box-shadow: 0 1px 4px rgba(0,0,0,.15);
-    }
-
-    #det-joy::-moz-range-thumb {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: #fff;
-      border: 2px solid #ccc;
-      cursor: pointer;
-      box-shadow: 0 1px 4px rgba(0,0,0,.15);
-    }
-
-    #det-dread::-moz-range-thumb {
+    #det-dread::-moz-range-thumb,
+    #det-joy::-moz-range-thumb,
+    #add-dread::-moz-range-thumb,
+    #add-joy::-moz-range-thumb {
       width: 26px;
       height: 26px;
       border-radius: 50%;
@@ -722,6 +702,25 @@
   <div class="add-box">
     <textarea id="input" placeholder="What do you need to do?" rows="1" oninput="autosize(this)" onkeydown="enterAdd(event)"></textarea>
     <button onclick="addTodo()">Add</button>
+  </div>
+
+  <div class="add-sliders">
+    <div class="dread-slider-wrap">
+      <div class="dread-slider-label">
+        <span class="lbl">Dread</span>
+        <span class="dread-score" id="add-dread-val">0</span>
+      </div>
+      <input type="range" id="add-dread" min="0" max="10" step="1" value="0"
+             oninput="updateDreadSlider(this.value, 'add')">
+    </div>
+    <div class="dread-slider-wrap">
+      <div class="dread-slider-label">
+        <span class="lbl">Joy</span>
+        <span class="dread-score" id="add-joy-val">0</span>
+      </div>
+      <input type="range" id="add-joy" min="0" max="10" step="1" value="0"
+             oninput="updateJoySlider(this.value, 'add')">
+    </div>
   </div>
 
   <div class="recents-wrap" id="recents-wrap" style="display:none">
@@ -878,10 +877,11 @@
     return { solid: '#40E6BA', bg: 'rgba(64,230,186,0.12)', text: '#006b4f' };
   }
 
-  function updateJoySlider(val) {
+  function updateJoySlider(val, prefix) {
+    prefix = prefix || 'det';
     val = parseInt(val, 10);
-    const scoreEl = document.getElementById('det-joy-val');
-    const slider  = document.getElementById('det-joy');
+    const scoreEl = document.getElementById(prefix + '-joy-val');
+    const slider  = document.getElementById(prefix + '-joy');
     scoreEl.textContent = val;
     const pct = val / 10 * 100;
     if (val === 0) {
@@ -895,10 +895,11 @@
     scoreEl.style.color = c.solid;
   }
 
-  function updateDreadSlider(val) {
+  function updateDreadSlider(val, prefix) {
+    prefix = prefix || 'det';
     val = parseInt(val, 10);
-    const scoreEl = document.getElementById('det-dread-val');
-    const slider  = document.getElementById('det-dread');
+    const scoreEl = document.getElementById(prefix + '-dread-val');
+    const slider  = document.getElementById(prefix + '-dread');
     scoreEl.textContent = val;
     const pct = val / 10 * 100;
     if (val === 0) {
@@ -933,7 +934,7 @@
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById('view-' + name).classList.add('active');
     if (name === 'list') renderList();
-    if (name === 'add') renderRecents();
+    if (name === 'add') { renderRecents(); updateDreadSlider(document.getElementById('add-dread').value, 'add'); updateJoySlider(document.getElementById('add-joy').value, 'add'); }
   }
 
   function autosize(el) {
@@ -952,9 +953,12 @@
     input.value = '';
     input.style.height = 'auto';
 
+    const dread = parseInt(document.getElementById('add-dread').value, 10) || 0;
+    const joy   = parseInt(document.getElementById('add-joy').value,   10) || 0;
+
     const { data, error } = await db
       .from('todos')
-      .insert({ text, done: false })
+      .insert({ text, done: false, dread, joy })
       .select()
       .single();
     if (error) { console.error(error); return; }
@@ -962,6 +966,11 @@
     todos.unshift(data);
     sessionRecents.unshift(data.id);
     renderRecents();
+
+    document.getElementById('add-dread').value = 0;
+    document.getElementById('add-joy').value   = 0;
+    updateDreadSlider(0, 'add');
+    updateJoySlider(0, 'add');
   }
 
   function renderRecents() {
@@ -1015,15 +1024,16 @@
 
     const filtered = filterByTab([...todos]);
     renderDJBar(filtered);
+    const earliestDate = t => {
+      const dl = t.deadline ? new Date(t.deadline + 'T00:00:00').getTime() : Infinity;
+      const ac = t.action_start ? new Date(t.action_start).getTime() : Infinity;
+      return Math.min(dl, ac);
+    };
     const sorted = filtered.sort((a, b) => {
-      const dl_a = a.deadline ? new Date(a.deadline + 'T00:00:00').getTime() : Infinity;
-      const dl_b = b.deadline ? new Date(b.deadline + 'T00:00:00').getTime() : Infinity;
-      if (dl_a !== dl_b) return dl_a - dl_b;
       if ((b.dread || 0) !== (a.dread || 0)) return (b.dread || 0) - (a.dread || 0);
-      if ((b.joy   || 0) !== (a.joy   || 0)) return (b.joy   || 0) - (a.joy   || 0);
-      const ac_a = a.action_start ? new Date(a.action_start).getTime() : Infinity;
-      const ac_b = b.action_start ? new Date(b.action_start).getTime() : Infinity;
-      return ac_a - ac_b;
+      const ea = earliestDate(a), eb = earliestDate(b);
+      if (ea !== eb) return ea - eb;
+      return (b.joy || 0) - (a.joy || 0);
     });
 
     sorted.forEach(todo => {
@@ -1078,12 +1088,20 @@
       const dlChip = document.createElement('span');
       dlChip.className = dl ? 'dl-chip ' + dl.cls : 'dl-chip dl-empty';
       dlChip.textContent = dl ? dl.label : 'No deadline';
-      meta.appendChild(dlChip);
 
       const acChip = document.createElement('span');
       acChip.className = ac ? 'action-chip' : 'action-chip action-empty';
       acChip.textContent = ac || 'No action';
-      meta.appendChild(acChip);
+
+      const dlMs = todo.deadline ? new Date(todo.deadline + 'T00:00:00').getTime() : Infinity;
+      const acMs = todo.action_start ? new Date(todo.action_start).getTime() : Infinity;
+      if (acMs < dlMs) {
+        meta.appendChild(acChip);
+        meta.appendChild(dlChip);
+      } else {
+        meta.appendChild(dlChip);
+        meta.appendChild(acChip);
+      }
 
 
       body.appendChild(meta);

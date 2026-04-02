@@ -170,6 +170,33 @@
 
     .list-header .create-btn:active { opacity: .75; }
 
+    /* ── TABS ── */
+    .tab-bar {
+      display: flex;
+      padding: 10px 16px;
+      gap: 6px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 7px 0;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
     .todo-list { display: flex; flex-direction: column; gap: 8px; padding: 16px; flex: 1; overflow-y: auto; }
 
     .todo-item {
@@ -599,6 +626,11 @@
     <h1>Todos</h1>
     <button class="create-btn" onclick="showView('add')">Create</button>
   </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-week"  onclick="setTab('week')">Week</button>
+    <button class="tab-btn"        id="tab-month" onclick="setTab('month')">Month</button>
+    <button class="tab-btn"        id="tab-year"  onclick="setTab('year')">Year</button>
+  </div>
   <div class="todo-list" id="all-list">
     <p class="empty-hint" id="list-empty">No todos yet.</p>
   </div>
@@ -683,6 +715,28 @@
 
   let todos = [];
   let sessionRecents = [];
+  let activeTab = 'week';
+
+  function setTab(tab) {
+    activeTab = tab;
+    ['week', 'month', 'year'].forEach(t => {
+      document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+    });
+    renderList();
+  }
+
+  function filterByTab(list) {
+    const now = new Date(); now.setHours(0, 0, 0, 0);
+    const days = { week: 7, month: 30, year: 365 }[activeTab];
+    const cutoff = new Date(now.getTime() + days * 86400000);
+    return list.filter(todo => {
+      if (!todo.deadline && !todo.action_start) return true;
+      const ref = todo.deadline
+        ? new Date(todo.deadline + 'T00:00:00')
+        : new Date(todo.action_start);
+      return ref <= cutoff;
+    });
+  }
 
   function formatDeadline(dateStr) {
     if (!dateStr) return null;
@@ -843,7 +897,7 @@
     if (todos.length === 0) { empty.style.display = ''; return; }
     empty.style.display = 'none';
 
-    const sorted = [...todos].sort((a, b) => {
+    const sorted = filterByTab([...todos]).sort((a, b) => {
       const dl_a = a.deadline ? new Date(a.deadline + 'T00:00:00').getTime() : Infinity;
       const dl_b = b.deadline ? new Date(b.deadline + 'T00:00:00').getTime() : Infinity;
       if (dl_a !== dl_b) return dl_a - dl_b;

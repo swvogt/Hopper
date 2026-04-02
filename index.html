@@ -170,6 +170,22 @@
 
     .list-header .create-btn:active { opacity: .75; }
 
+    .list-header .refresh-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 7px 8px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color .15s;
+    }
+
+    .list-header .refresh-btn:hover { color: var(--text); }
+    .list-header .refresh-btn:active { opacity: .6; }
+
     /* ── DREAD/JOY BAR ── */
     .dj-bar-wrap {
       padding: 10px 20px;
@@ -651,6 +667,11 @@
 <div id="view-list" class="view active">
   <div class="list-header">
     <h1>Todos</h1>
+    <button class="refresh-btn" onclick="init()" title="Refresh">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M13.65 2.35A8 8 0 1 0 15 8h-2a6 6 0 1 1-1.06-3.39L10 6h5V1l-1.35 1.35z" fill="currentColor"/>
+      </svg>
+    </button>
     <button class="create-btn" onclick="showView('add')">Create</button>
   </div>
   <div class="tab-bar">

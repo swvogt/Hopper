@@ -844,11 +844,11 @@
     empty.style.display = 'none';
 
     const sorted = [...todos].sort((a, b) => {
-      if ((b.dread || 0) !== (a.dread || 0)) return (b.dread || 0) - (a.dread || 0);
-      if ((b.joy   || 0) !== (a.joy   || 0)) return (b.joy   || 0) - (a.joy   || 0);
       const dl_a = a.deadline ? new Date(a.deadline + 'T00:00:00').getTime() : Infinity;
       const dl_b = b.deadline ? new Date(b.deadline + 'T00:00:00').getTime() : Infinity;
       if (dl_a !== dl_b) return dl_a - dl_b;
+      if ((b.dread || 0) !== (a.dread || 0)) return (b.dread || 0) - (a.dread || 0);
+      if ((b.joy   || 0) !== (a.joy   || 0)) return (b.joy   || 0) - (a.joy   || 0);
       const ac_a = a.action_start ? new Date(a.action_start).getTime() : Infinity;
       const ac_b = b.action_start ? new Date(b.action_start).getTime() : Infinity;
       return ac_a - ac_b;

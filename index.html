@@ -531,6 +531,39 @@
       box-shadow: 0 1px 4px rgba(0,0,0,.15);
     }
 
+    #det-joy {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      outline: none;
+      border: none;
+      cursor: pointer;
+      background: var(--border);
+    }
+
+    #det-joy::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #ccc;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,.15);
+    }
+
+    #det-joy::-moz-range-thumb {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #ccc;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,.15);
+    }
+
     #det-dread::-moz-range-thumb {
       width: 26px;
       height: 26px;
@@ -609,6 +642,14 @@
         <input type="range" id="det-dread" min="0" max="10" step="1" value="0"
                oninput="updateDreadSlider(this.value)">
       </div>
+      <div class="dread-slider-wrap">
+        <div class="dread-slider-label">
+          <span class="lbl">Joy</span>
+          <span class="dread-score" id="det-joy-val">0</span>
+        </div>
+        <input type="range" id="det-joy" min="0" max="10" step="1" value="0"
+               oninput="updateJoySlider(this.value)">
+      </div>
       <div class="field-group">
         <label>Deadline</label>
         <input type="date" id="det-deadline">
@@ -677,6 +718,36 @@
       bg:    `rgba(255,${g},${b},${0.12 + t * 0.25})`,
       text:  t > 0.55 ? '#7f0000' : '#a00000',
     };
+  }
+
+  function joyColor(val) {
+    if (!val) return null;
+    const t = val / 10;
+    const r = Math.round(224 - 198 * t);
+    const g = Math.round(235 - 149 * t);
+    const b = Math.round(255 -  51 * t);
+    return {
+      solid: `rgb(${r},${g},${b})`,
+      bg:    `rgba(${r},${g},${b},${0.12 + t * 0.25})`,
+      text:  t > 0.55 ? '#fff' : '#003080',
+    };
+  }
+
+  function updateJoySlider(val) {
+    val = parseInt(val, 10);
+    const scoreEl = document.getElementById('det-joy-val');
+    const slider  = document.getElementById('det-joy');
+    scoreEl.textContent = val;
+    const pct = val / 10 * 100;
+    if (val === 0) {
+      slider.style.background = 'var(--border)';
+      scoreEl.style.color = 'var(--muted)';
+      return;
+    }
+    const c = joyColor(val);
+    slider.style.background =
+      `linear-gradient(to right, ${c.solid} ${pct}%, var(--border) ${pct}%)`;
+    scoreEl.style.color = c.solid;
   }
 
   function updateDreadSlider(val) {
@@ -774,6 +845,7 @@
 
     const sorted = [...todos].sort((a, b) => {
       if ((b.dread || 0) !== (a.dread || 0)) return (b.dread || 0) - (a.dread || 0);
+      if ((b.joy   || 0) !== (a.joy   || 0)) return (b.joy   || 0) - (a.joy   || 0);
       const dl_a = a.deadline ? new Date(a.deadline + 'T00:00:00').getTime() : Infinity;
       const dl_b = b.deadline ? new Date(b.deadline + 'T00:00:00').getTime() : Infinity;
       if (dl_a !== dl_b) return dl_a - dl_b;
@@ -785,10 +857,10 @@
     sorted.forEach(todo => {
       const div = document.createElement('div');
       div.className = 'todo-item' + (todo.done ? ' done' : '');
-      if (todo.dread) {
-        const dc = dreadColor(todo.dread);
-        div.style.boxShadow = `inset 4px 0 0 ${dc.solid}`;
-      }
+      const shadows = [];
+      if (todo.dread) shadows.push(`inset 4px 0 0 ${dreadColor(todo.dread).solid}`);
+      if (todo.joy)   shadows.push(`inset -4px 0 0 ${joyColor(todo.joy).solid}`);
+      if (shadows.length) div.style.boxShadow = shadows.join(', ');
 
       const check = document.createElement('button');
       check.className = 'check';
@@ -828,6 +900,16 @@
         dreadChip.style.color = dc.text;
         dreadChip.textContent = 'Dread ' + todo.dread;
         meta.appendChild(dreadChip);
+      }
+
+      if (todo.joy) {
+        const jc = joyColor(todo.joy);
+        const joyChip = document.createElement('span');
+        joyChip.className = 'dread-chip';
+        joyChip.style.background = jc.bg;
+        joyChip.style.color = jc.text;
+        joyChip.textContent = 'Joy ' + todo.joy;
+        meta.appendChild(joyChip);
       }
 
       body.appendChild(meta);
@@ -907,6 +989,10 @@
     document.getElementById('det-dread').value = dread;
     updateDreadSlider(dread);
 
+    const joy = todo.joy || 0;
+    document.getElementById('det-joy').value = joy;
+    updateJoySlider(joy);
+
     const notesEl = document.getElementById('det-notes');
     notesEl.value = todo.notes || '';
     notesEl.style.height = 'auto';
@@ -946,6 +1032,7 @@
       action_start: actionStartVal ? new Date(actionStartVal).toISOString() : null,
       action_duration_minutes: durationVal ? parseInt(durationVal, 10) : null,
       dread: dreadVal,
+      joy: parseInt(document.getElementById('det-joy').value, 10) || 0,
       notes: document.getElementById('det-notes').value.trim() || null,
     };
 

@@ -442,6 +442,27 @@
 
     .field-group input:focus { border-color: var(--accent); }
 
+    .field-group textarea {
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      width: 100%;
+      resize: none;
+      line-height: 1.5;
+      min-height: 80px;
+      max-height: 200px;
+      overflow-y: auto;
+      transition: border-color .15s;
+    }
+
+    .field-group textarea::placeholder { color: var(--muted); }
+    .field-group textarea:focus { border-color: var(--accent); }
+
     .detail-footer {
       padding: 16px 20px;
       background: var(--bg);
@@ -461,6 +482,73 @@
     }
 
     .save-btn:active { opacity: .75; }
+
+    /* ── DREAD SLIDER ── */
+    .dread-slider-wrap { display: flex; flex-direction: column; gap: 10px; }
+
+    .dread-slider-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .dread-slider-label .lbl {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .dread-score {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1;
+      transition: color .15s;
+      color: var(--muted);
+    }
+
+    #det-dread {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      outline: none;
+      border: none;
+      cursor: pointer;
+      background: var(--border);
+    }
+
+    #det-dread::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #ccc;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,.15);
+    }
+
+    #det-dread::-moz-range-thumb {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #ccc;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,.15);
+    }
+
+    /* ── DREAD CHIP (list view) ── */
+    .dread-chip {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
 
     .empty-hint {
       font-size: 14px;
@@ -513,6 +601,14 @@
       <button class="done-toggle" id="det-done-btn" onclick="toggleDetailDone()">Mark done</button>
     </div>
     <div class="detail-fields">
+      <div class="dread-slider-wrap">
+        <div class="dread-slider-label">
+          <span class="lbl">Dread</span>
+          <span class="dread-score" id="det-dread-val">0</span>
+        </div>
+        <input type="range" id="det-dread" min="0" max="10" step="1" value="0"
+               oninput="updateDreadSlider(this.value)">
+      </div>
       <div class="field-group">
         <label>Deadline</label>
         <input type="date" id="det-deadline">
@@ -524,6 +620,10 @@
       <div class="field-group">
         <label>Duration (minutes)</label>
         <input type="number" id="det-duration" placeholder="e.g. 30" min="5" step="5">
+      </div>
+      <div class="field-group">
+        <label>Notes</label>
+        <textarea id="det-notes" placeholder="Any extra context…" oninput="autosize(this)"></textarea>
       </div>
     </div>
   </div>
@@ -565,6 +665,35 @@
       dur = ' · ' + (h && m ? h + 'h ' + m + 'm' : h ? h + 'h' : m + 'min');
     }
     return date + ' · ' + time + dur;
+  }
+
+  function dreadColor(val) {
+    if (!val) return null;
+    const t = val / 10;
+    const g = Math.round(220 * (1 - t));
+    const b = Math.round(220 * (1 - t));
+    return {
+      solid: `rgb(255,${g},${b})`,
+      bg:    `rgba(255,${g},${b},${0.12 + t * 0.25})`,
+      text:  t > 0.55 ? '#7f0000' : '#a00000',
+    };
+  }
+
+  function updateDreadSlider(val) {
+    val = parseInt(val, 10);
+    const scoreEl = document.getElementById('det-dread-val');
+    const slider  = document.getElementById('det-dread');
+    scoreEl.textContent = val;
+    const pct = val / 10 * 100;
+    if (val === 0) {
+      slider.style.background = 'var(--border)';
+      scoreEl.style.color = 'var(--muted)';
+      return;
+    }
+    const c = dreadColor(val);
+    slider.style.background =
+      `linear-gradient(to right, ${c.solid} ${pct}%, var(--border) ${pct}%)`;
+    scoreEl.style.color = c.solid;
   }
 
   function staleBand(touchedAt) {
@@ -644,6 +773,7 @@
     empty.style.display = 'none';
 
     const sorted = [...todos].sort((a, b) => {
+      if ((b.dread || 0) !== (a.dread || 0)) return (b.dread || 0) - (a.dread || 0);
       const dl_a = a.deadline ? new Date(a.deadline + 'T00:00:00').getTime() : Infinity;
       const dl_b = b.deadline ? new Date(b.deadline + 'T00:00:00').getTime() : Infinity;
       if (dl_a !== dl_b) return dl_a - dl_b;
@@ -655,6 +785,10 @@
     sorted.forEach(todo => {
       const div = document.createElement('div');
       div.className = 'todo-item' + (todo.done ? ' done' : '');
+      if (todo.dread) {
+        const dc = dreadColor(todo.dread);
+        div.style.boxShadow = `inset 4px 0 0 ${dc.solid}`;
+      }
 
       const check = document.createElement('button');
       check.className = 'check';
@@ -685,6 +819,16 @@
       acChip.className = ac ? 'action-chip' : 'action-chip action-empty';
       acChip.textContent = ac || 'No action';
       meta.appendChild(acChip);
+
+      if (todo.dread) {
+        const dc = dreadColor(todo.dread);
+        const dreadChip = document.createElement('span');
+        dreadChip.className = 'dread-chip';
+        dreadChip.style.background = dc.bg;
+        dreadChip.style.color = dc.text;
+        dreadChip.textContent = 'Dread ' + todo.dread;
+        meta.appendChild(dreadChip);
+      }
 
       body.appendChild(meta);
 
@@ -759,6 +903,15 @@
 
     document.getElementById('det-duration').value = todo.action_duration_minutes || '';
 
+    const dread = todo.dread || 0;
+    document.getElementById('det-dread').value = dread;
+    updateDreadSlider(dread);
+
+    const notesEl = document.getElementById('det-notes');
+    notesEl.value = todo.notes || '';
+    notesEl.style.height = 'auto';
+    notesEl.style.height = Math.min(notesEl.scrollHeight, 200) + 'px';
+
     showView('detail');
   }
 
@@ -783,6 +936,8 @@
     const durationVal = document.getElementById('det-duration').value;
     const now = new Date().toISOString();
 
+    const dreadVal = parseInt(document.getElementById('det-dread').value, 10) || 0;
+
     const patch = {
       text,
       done: todo.done,
@@ -790,6 +945,8 @@
       deadline: deadlineVal || null,
       action_start: actionStartVal ? new Date(actionStartVal).toISOString() : null,
       action_duration_minutes: durationVal ? parseInt(durationVal, 10) : null,
+      dread: dreadVal,
+      notes: document.getElementById('det-notes').value.trim() || null,
     };
 
     Object.assign(todo, patch);

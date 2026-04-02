@@ -864,27 +864,12 @@
 
   function dreadColor(val) {
     if (!val) return null;
-    const t = val / 10;
-    const g = Math.round(220 * (1 - t));
-    const b = Math.round(220 * (1 - t));
-    return {
-      solid: `rgb(255,${g},${b})`,
-      bg:    `rgba(255,${g},${b},${0.12 + t * 0.25})`,
-      text:  t > 0.55 ? '#7f0000' : '#a00000',
-    };
+    return { solid: '#E94E75', bg: 'rgba(233,78,117,0.12)', text: '#8b0026' };
   }
 
   function joyColor(val) {
     if (!val) return null;
-    const t = val / 10;
-    const r = Math.round(224 - 198 * t);
-    const g = Math.round(235 - 149 * t);
-    const b = Math.round(255 -  51 * t);
-    return {
-      solid: `rgb(${r},${g},${b})`,
-      bg:    `rgba(${r},${g},${b},${0.12 + t * 0.25})`,
-      text:  t > 0.55 ? '#fff' : '#003080',
-    };
+    return { solid: '#40E6BA', bg: 'rgba(64,230,186,0.12)', text: '#006b4f' };
   }
 
   function updateJoySlider(val) {
@@ -1008,13 +993,10 @@
     const dreadPct = totalDread / total * 100;
     const joyPct   = totalJoy   / total * 100;
 
-    const dc = dreadColor(Math.round(totalDread / visibleTodos.filter(t => t.dread).length || 10));
-    const jc = joyColor(Math.round(totalJoy   / visibleTodos.filter(t => t.joy  ).length || 10));
-
     dreadEl.style.width      = dreadPct + '%';
-    dreadEl.style.background = `rgb(255,${Math.round(220 * (1 - dreadPct/100))},${Math.round(220 * (1 - dreadPct/100))})`;
+    dreadEl.style.background = '#E94E75';
     joyEl.style.width        = joyPct + '%';
-    joyEl.style.background   = `rgb(${Math.round(224 - 198 * joyPct/100)},${Math.round(235 - 149 * joyPct/100)},255)`;
+    joyEl.style.background   = '#40E6BA';
   }
 
   function renderList() {

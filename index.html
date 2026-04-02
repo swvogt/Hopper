@@ -1084,25 +1084,6 @@
       acChip.textContent = ac || 'No action';
       meta.appendChild(acChip);
 
-      if (todo.dread) {
-        const dc = dreadColor(todo.dread);
-        const dreadChip = document.createElement('span');
-        dreadChip.className = 'dread-chip';
-        dreadChip.style.background = dc.bg;
-        dreadChip.style.color = dc.text;
-        dreadChip.textContent = 'Dread ' + todo.dread;
-        meta.appendChild(dreadChip);
-      }
-
-      if (todo.joy) {
-        const jc = joyColor(todo.joy);
-        const joyChip = document.createElement('span');
-        joyChip.className = 'dread-chip';
-        joyChip.style.background = jc.bg;
-        joyChip.style.color = jc.text;
-        joyChip.textContent = 'Joy ' + todo.joy;
-        meta.appendChild(joyChip);
-      }
 
       body.appendChild(meta);
 

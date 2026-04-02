@@ -1092,17 +1092,11 @@
       badge.className = 'stale-badge ' + band.cls;
       badge.textContent = band.label;
 
-      const del = document.createElement('button');
-      del.className = 'del';
-      del.textContent = '×';
-      del.onclick = (e) => { e.stopPropagation(); deleteTodo(todo.id); };
-
       div.onclick = () => showDetail(todo.id);
 
       row.appendChild(check);
       row.appendChild(body);
       row.appendChild(badge);
-      row.appendChild(del);
       div.appendChild(row);
       div.appendChild(bar);
       container.appendChild(div);

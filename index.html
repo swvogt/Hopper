@@ -172,8 +172,9 @@
 
     /* ── DREAD/JOY BAR ── */
     .dj-bar-wrap {
-      padding: 0 20px 14px;
+      padding: 10px 20px;
       background: var(--surface);
+      border-bottom: 1px solid var(--border);
     }
 
     .dj-bar-track {
@@ -652,17 +653,17 @@
     <h1>Todos</h1>
     <button class="create-btn" onclick="showView('add')">Create</button>
   </div>
-  <div class="dj-bar-wrap">
-    <div class="dj-bar-track">
-      <div class="dj-bar-dread" id="dj-dread"></div>
-      <div class="dj-bar-joy"   id="dj-joy"></div>
-    </div>
-  </div>
   <div class="tab-bar">
     <button class="tab-btn active" id="tab-week"  onclick="setTab('week')">Week</button>
     <button class="tab-btn"        id="tab-month" onclick="setTab('month')">Month</button>
     <button class="tab-btn"        id="tab-year"  onclick="setTab('year')">Year</button>
     <button class="tab-btn"        id="tab-all"   onclick="setTab('all')">All</button>
+  </div>
+  <div class="dj-bar-wrap">
+    <div class="dj-bar-track">
+      <div class="dj-bar-dread" id="dj-dread"></div>
+      <div class="dj-bar-joy"   id="dj-joy"></div>
+    </div>
   </div>
   <div class="todo-list" id="all-list">
     <p class="empty-hint" id="list-empty">No todos yet.</p>

@@ -245,16 +245,38 @@
 
     .todo-item {
       display: flex;
-      align-items: flex-start;
-      gap: 10px;
+      flex-direction: column;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 14px;
       transition: background .15s;
     }
 
-    .todo-item.done { background: var(--done-bg); }
+    .todo-item-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 14px 14px 12px;
+    }
+
+    .todo-item-bar {
+      height: 5px;
+      display: flex;
+      border-radius: 0 0 calc(var(--radius) - 1px) calc(var(--radius) - 1px);
+      overflow: hidden;
+    }
+
+    .todo-item-bar-dread {
+      height: 100%;
+      flex-shrink: 0;
+    }
+
+    .todo-item-bar-joy {
+      height: 100%;
+      flex-shrink: 0;
+    }
+
+    .todo-item.done .todo-item-row { background: var(--done-bg); }
 
     .todo-item .check {
       width: 22px;
@@ -375,8 +397,8 @@
     .todo-item.done .action-empty { opacity: .4; }
 
     .todo-item { cursor: pointer; }
-    .todo-item:hover { background: #fafaf8; }
-    .todo-item.done:hover { background: var(--done-bg); }
+    .todo-item:hover .todo-item-row { background: #fafaf8; }
+    .todo-item.done:hover .todo-item-row { background: var(--done-bg); }
     .todo-item .check, .todo-item .del { cursor: pointer; }
 
     /* ── DETAIL VIEW ── */
@@ -1019,10 +1041,31 @@
     sorted.forEach(todo => {
       const div = document.createElement('div');
       div.className = 'todo-item' + (todo.done ? ' done' : '');
-      const shadows = [];
-      if (todo.dread) shadows.push(`inset 7px 0 0 ${dreadColor(todo.dread).solid}`);
-      if (todo.joy)   shadows.push(`inset -7px 0 0 ${joyColor(todo.joy).solid}`);
-      if (shadows.length) div.style.boxShadow = shadows.join(', ');
+
+      // sentiment bar
+      const bar = document.createElement('div');
+      bar.className = 'todo-item-bar';
+      const total = (todo.dread || 0) + (todo.joy || 0);
+      if (total > 0) {
+        const dreadPct = (todo.dread || 0) / total * 100;
+        const joyPct   = (todo.joy   || 0) / total * 100;
+        if (todo.dread) {
+          const dreadEl = document.createElement('div');
+          dreadEl.className = 'todo-item-bar-dread';
+          dreadEl.style.width = dreadPct + '%';
+          dreadEl.style.background = dreadColor(todo.dread).solid;
+          bar.appendChild(dreadEl);
+        }
+        if (todo.joy) {
+          const joyEl = document.createElement('div');
+          joyEl.className = 'todo-item-bar-joy';
+          joyEl.style.width = joyPct + '%';
+          joyEl.style.background = joyColor(todo.joy).solid;
+          bar.appendChild(joyEl);
+        }
+      }
+      const row = document.createElement('div');
+      row.className = 'todo-item-row';
 
       const check = document.createElement('button');
       check.className = 'check';
@@ -1088,10 +1131,12 @@
 
       div.onclick = () => showDetail(todo.id);
 
-      div.appendChild(check);
-      div.appendChild(body);
-      div.appendChild(badge);
-      div.appendChild(del);
+      row.appendChild(check);
+      row.appendChild(body);
+      row.appendChild(badge);
+      row.appendChild(del);
+      div.appendChild(row);
+      div.appendChild(bar);
       container.appendChild(div);
     });
   }

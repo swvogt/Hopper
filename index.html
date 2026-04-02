@@ -800,7 +800,7 @@
   (function() {
     const sel = document.getElementById('det-action-time');
     sel.innerHTML = '<option value="">— time —</option>';
-    for (let h = 0; h < 24; h++) {
+    for (let h = 8; h <= 20; h++) {
       [0, 30].forEach(m => {
         const hh = String(h).padStart(2, '0');
         const mm = String(m).padStart(2, '0');

@@ -643,7 +643,16 @@
     if (todos.length === 0) { empty.style.display = ''; return; }
     empty.style.display = 'none';
 
-    todos.forEach(todo => {
+    const sorted = [...todos].sort((a, b) => {
+      const dl_a = a.deadline ? new Date(a.deadline + 'T00:00:00').getTime() : Infinity;
+      const dl_b = b.deadline ? new Date(b.deadline + 'T00:00:00').getTime() : Infinity;
+      if (dl_a !== dl_b) return dl_a - dl_b;
+      const ac_a = a.action_start ? new Date(a.action_start).getTime() : Infinity;
+      const ac_b = b.action_start ? new Date(b.action_start).getTime() : Infinity;
+      return ac_a - ac_b;
+    });
+
+    sorted.forEach(todo => {
       const div = document.createElement('div');
       div.className = 'todo-item' + (todo.done ? ' done' : '');
 

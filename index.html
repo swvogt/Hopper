@@ -745,7 +745,10 @@
       </div>
       <div class="field-group">
         <label>Action start</label>
-        <input type="datetime-local" id="det-action-start" step="1800">
+        <div style="display:flex;gap:8px;">
+          <input type="date" id="det-action-date" style="flex:1">
+          <select id="det-action-time" style="flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:15px;font-family:inherit;color:var(--text);background:var(--surface);outline:none;"></select>
+        </div>
       </div>
       <div class="field-group">
         <label>Duration (minutes)</label>
@@ -769,6 +772,20 @@
     'https://vsliqkdgurlthdvoadnq.supabase.co',
     'sb_publishable_ElNfnqKQC2ClGiMbXgWssw_KrhW-119'
   );
+
+  // Build half-hour time options
+  (function() {
+    const sel = document.getElementById('det-action-time');
+    sel.innerHTML = '<option value="">— time —</option>';
+    for (let h = 0; h < 24; h++) {
+      [0, 30].forEach(m => {
+        const hh = String(h).padStart(2, '0');
+        const mm = String(m).padStart(2, '0');
+        const label = new Date(2000,0,1,h,m).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+        sel.innerHTML += `<option value="${hh}:${mm}">${label}</option>`;
+      });
+    }
+  })();
 
   let todos = [];
   let sessionRecents = [];
@@ -1121,11 +1138,15 @@
 
     if (todo.action_start) {
       const d = new Date(todo.action_start);
-      const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
-        .toISOString().slice(0, 16);
-      document.getElementById('det-action-start').value = local;
+      const localDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+        .toISOString().slice(0, 10);
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = d.getMinutes() >= 15 ? '30' : '00';
+      document.getElementById('det-action-date').value = localDate;
+      document.getElementById('det-action-time').value = hh + ':' + mm;
     } else {
-      document.getElementById('det-action-start').value = '';
+      document.getElementById('det-action-date').value = '';
+      document.getElementById('det-action-time').value = '';
     }
 
     document.getElementById('det-duration').value = todo.action_duration_minutes || '';
@@ -1163,7 +1184,9 @@
     if (!text) return;
 
     const deadlineVal = document.getElementById('det-deadline').value;
-    const actionStartVal = document.getElementById('det-action-start').value;
+    const actionDateVal = document.getElementById('det-action-date').value;
+    const actionTimeVal = document.getElementById('det-action-time').value;
+    const actionStartVal = actionDateVal && actionTimeVal ? actionDateVal + 'T' + actionTimeVal : '';
     const durationVal = document.getElementById('det-duration').value;
     const now = new Date().toISOString();
 

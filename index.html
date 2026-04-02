@@ -1020,8 +1020,8 @@
       const div = document.createElement('div');
       div.className = 'todo-item' + (todo.done ? ' done' : '');
       const shadows = [];
-      if (todo.dread) shadows.push(`inset 4px 0 0 ${dreadColor(todo.dread).solid}`);
-      if (todo.joy)   shadows.push(`inset -4px 0 0 ${joyColor(todo.joy).solid}`);
+      if (todo.dread) shadows.push(`inset 7px 0 0 ${dreadColor(todo.dread).solid}`);
+      if (todo.joy)   shadows.push(`inset -7px 0 0 ${joyColor(todo.joy).solid}`);
       if (shadows.length) div.style.boxShadow = shadows.join(', ');
 
       const check = document.createElement('button');

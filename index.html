@@ -703,6 +703,7 @@
     <button class="tab-btn"        id="tab-month" onclick="setTab('month')">Month</button>
     <button class="tab-btn"        id="tab-year"  onclick="setTab('year')">Year</button>
     <button class="tab-btn"        id="tab-all"   onclick="setTab('all')">New</button>
+    <button class="tab-btn"        id="tab-done"  onclick="setTab('done')">Done</button>
   </div>
   <div class="dj-bar-wrap">
     <div class="dj-bar-track">
@@ -815,22 +816,26 @@
 
   function setTab(tab) {
     activeTab = tab;
-    ['week', 'month', 'year', 'all'].forEach(t => {
+    ['week', 'month', 'year', 'all', 'done'].forEach(t => {
       document.getElementById('tab-' + t).classList.toggle('active', t === tab);
     });
     renderList();
   }
 
   function filterByTab(list) {
+    if (activeTab === 'done') {
+      return [...list].filter(t => t.done);
+    }
+    const active = list.filter(t => !t.done);
     if (activeTab === 'all') {
-      return [...list]
+      return active
         .filter(t => !((t.dread || t.joy) && (t.deadline || t.action_start)))
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
     const now = new Date(); now.setHours(0, 0, 0, 0);
     const days = { week: 7, month: 30, year: 365 }[activeTab];
     const cutoff = new Date(now.getTime() + days * 86400000);
-    return list.filter(todo => {
+    return active.filter(todo => {
       const ref = todo.deadline
         ? new Date(todo.deadline + 'T00:00:00')
         : todo.action_start ? new Date(todo.action_start) : null;

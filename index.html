@@ -170,6 +170,32 @@
 
     .list-header .create-btn:active { opacity: .75; }
 
+    /* ── DREAD/JOY BAR ── */
+    .dj-bar-wrap {
+      padding: 0 20px 14px;
+      background: var(--surface);
+    }
+
+    .dj-bar-track {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      overflow: hidden;
+      display: flex;
+    }
+
+    .dj-bar-dread {
+      height: 100%;
+      transition: width .4s ease;
+      border-radius: 3px 0 0 3px;
+    }
+
+    .dj-bar-joy {
+      height: 100%;
+      transition: width .4s ease;
+      border-radius: 0 3px 3px 0;
+    }
+
     /* ── TABS ── */
     .tab-bar {
       display: flex;
@@ -626,6 +652,12 @@
     <h1>Todos</h1>
     <button class="create-btn" onclick="showView('add')">Create</button>
   </div>
+  <div class="dj-bar-wrap">
+    <div class="dj-bar-track">
+      <div class="dj-bar-dread" id="dj-dread"></div>
+      <div class="dj-bar-joy"   id="dj-joy"></div>
+    </div>
+  </div>
   <div class="tab-bar">
     <button class="tab-btn active" id="tab-week"  onclick="setTab('week')">Week</button>
     <button class="tab-btn"        id="tab-month" onclick="setTab('month')">Month</button>
@@ -890,6 +922,34 @@
     });
   }
 
+  function renderDJBar(visibleTodos) {
+    const totalDread = visibleTodos.reduce((s, t) => s + (t.dread || 0), 0);
+    const totalJoy   = visibleTodos.reduce((s, t) => s + (t.joy   || 0), 0);
+    const total = totalDread + totalJoy;
+
+    const dreadEl = document.getElementById('dj-dread');
+    const joyEl   = document.getElementById('dj-joy');
+
+    if (total === 0) {
+      dreadEl.style.width = '0%';
+      joyEl.style.width   = '0%';
+      dreadEl.style.background = '';
+      joyEl.style.background   = '';
+      return;
+    }
+
+    const dreadPct = totalDread / total * 100;
+    const joyPct   = totalJoy   / total * 100;
+
+    const dc = dreadColor(Math.round(totalDread / visibleTodos.filter(t => t.dread).length || 10));
+    const jc = joyColor(Math.round(totalJoy   / visibleTodos.filter(t => t.joy  ).length || 10));
+
+    dreadEl.style.width      = dreadPct + '%';
+    dreadEl.style.background = `rgb(255,${Math.round(220 * (1 - dreadPct/100))},${Math.round(220 * (1 - dreadPct/100))})`;
+    joyEl.style.width        = joyPct + '%';
+    joyEl.style.background   = `rgb(${Math.round(224 - 198 * joyPct/100)},${Math.round(235 - 149 * joyPct/100)},255)`;
+  }
+
   function renderList() {
     const container = document.getElementById('all-list');
     const empty = document.getElementById('list-empty');
@@ -898,7 +958,9 @@
     if (todos.length === 0) { empty.style.display = ''; return; }
     empty.style.display = 'none';
 
-    const sorted = filterByTab([...todos]).sort((a, b) => {
+    const filtered = filterByTab([...todos]);
+    renderDJBar(filtered);
+    const sorted = filtered.sort((a, b) => {
       const dl_a = a.deadline ? new Date(a.deadline + 'T00:00:00').getTime() : Infinity;
       const dl_b = b.deadline ? new Date(b.deadline + 'T00:00:00').getTime() : Infinity;
       if (dl_a !== dl_b) return dl_a - dl_b;

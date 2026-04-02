@@ -785,7 +785,7 @@
   function filterByTab(list) {
     if (activeTab === 'all') {
       return [...list]
-        .filter(t => !t.deadline && !t.action_start && !t.dread && !t.joy && !t.notes)
+        .filter(t => !((t.dread || t.joy) && (t.deadline || t.action_start)))
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
     const now = new Date(); now.setHours(0, 0, 0, 0);

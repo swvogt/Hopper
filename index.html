@@ -193,6 +193,48 @@
 
     .list-header .refresh-btn:hover { color: var(--text); border-color: #bbb; }
     .list-header .refresh-btn:active { opacity: .6; }
+    .list-header .new-tab-btn { font-size: 13px; font-weight: 600; padding: 6px 12px; font-family: inherit; }
+    .list-header .new-tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .tab-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(0,0,0,0.15);
+      color: inherit;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .tab-btn.active .tab-count { background: rgba(255,255,255,0.25); }
+    .new-tab-btn.active .tab-count { background: rgba(255,255,255,0.25); }
+
+    .done-tab-btn {
+      background: none;
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      border-radius: 10px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: color .15s, border-color .15s, background .15s;
+    }
+
+    .done-tab-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
 
     /* ── DREAD/JOY BAR ── */
     .dj-bar-wrap {
@@ -702,14 +744,18 @@
         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
       </svg>
     </button>
+    <button class="new-tab-btn refresh-btn" id="tab-all" onclick="setTab('all')" title="All">All</button>
     <button class="create-btn" onclick="showView('add')">Create</button>
   </div>
   <div class="tab-bar">
-    <button class="tab-btn active" id="tab-week"  onclick="setTab('week')">Week</button>
-    <button class="tab-btn"        id="tab-month" onclick="setTab('month')">Month</button>
-    <button class="tab-btn"        id="tab-year"  onclick="setTab('year')">Year</button>
-    <button class="tab-btn"        id="tab-all"   onclick="setTab('all')">New</button>
-    <button class="tab-btn"        id="tab-done"  onclick="setTab('done')">Done</button>
+    <button class="tab-btn active" id="tab-today"  onclick="setTab('today')">Today</button>
+    <button class="tab-btn"        id="tab-soon"   onclick="setTab('soon')">Soon</button>
+    <button class="tab-btn"        id="tab-later"  onclick="setTab('later')">Later</button>
+    <button class="done-tab-btn"   id="tab-done"   onclick="setTab('done')" title="Done">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </button>
   </div>
   <div class="dj-bar-wrap">
     <div class="dj-bar-track">
@@ -842,13 +888,14 @@
 
   let todos = [];
   let sessionRecents = [];
-  let activeTab = 'week';
+  let activeTab = 'today';
 
   function setTab(tab) {
     activeTab = tab;
-    ['week', 'month', 'year', 'all', 'done'].forEach(t => {
+    ['today', 'soon', 'later', 'done'].forEach(t => {
       document.getElementById('tab-' + t).classList.toggle('active', t === tab);
     });
+    document.getElementById('tab-all').classList.toggle('active', tab === 'all');
     renderList();
   }
 
@@ -858,18 +905,20 @@
     }
     const active = list.filter(t => !t.done);
     if (activeTab === 'all') {
-      return active
-        .filter(t => !((t.dread || t.joy) && (t.deadline || t.action_start)))
-        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      return active.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
     const now = new Date(); now.setHours(0, 0, 0, 0);
-    const days = { week: 7, month: 30, year: 365 }[activeTab];
-    const cutoff = new Date(now.getTime() + days * 86400000);
+    const todayEnd  = new Date(now.getTime() + 1  * 86400000);
+    const soonEnd   = new Date(now.getTime() + 7  * 86400000);
     return active.filter(todo => {
-      const ref = todo.deadline
-        ? new Date(todo.deadline + 'T00:00:00')
-        : todo.action_start ? new Date(todo.action_start) : null;
-      return ref !== null && ref <= cutoff;
+      const dl = todo.deadline ? new Date(todo.deadline + 'T00:00:00') : null;
+      const ac = todo.action_start ? new Date(todo.action_start) : null;
+      const ref = (dl && ac) ? (dl < ac ? dl : ac) : (dl || ac);
+      if (ref === null) return false;
+      if (activeTab === 'today') return ref <= todayEnd;
+      if (activeTab === 'soon')  return ref > todayEnd && ref <= soonEnd;
+      if (activeTab === 'later') return ref > soonEnd;
+      return false;
     });
   }
 
@@ -1049,6 +1098,19 @@
     joyEl.style.background   = '#40E6BA';
   }
 
+  function renderTabCounts() {
+    const saved = activeTab;
+    ['today', 'soon', 'later', 'all'].forEach(t => {
+      const el = document.getElementById('tab-' + t);
+      if (!el) return;
+      activeTab = t;
+      const count = filterByTab([...todos]).length;
+      const label = { today: 'Today', soon: 'Soon', later: 'Later', all: 'All' }[t];
+      el.innerHTML = count > 0 ? `${label} <span class="tab-count">${count}</span>` : label;
+    });
+    activeTab = saved;
+  }
+
   function renderList() {
     const container = document.getElementById('all-list');
     const empty = document.getElementById('list-empty');
@@ -1057,6 +1119,7 @@
     if (todos.length === 0) { empty.style.display = ''; return; }
     empty.style.display = 'none';
 
+    renderTabCounts();
     const filtered = filterByTab([...todos]);
     renderDJBar(filtered);
     const earliestDate = t => {
@@ -1247,7 +1310,9 @@
     const deadlineVal = document.getElementById('det-deadline').value;
     const actionDateVal = document.getElementById('det-action-date').value;
     const actionTimeVal = document.getElementById('det-action-time').value;
-    const actionStartVal = actionDateVal && actionTimeVal ? actionDateVal + 'T' + actionTimeVal : '';
+    const actionStartVal = actionDateVal && actionTimeVal ? actionDateVal + 'T' + actionTimeVal
+                         : actionDateVal ? actionDateVal + 'T' + (todo.action_start ? new Date(todo.action_start).toTimeString().slice(0,5) : '09:00')
+                         : '';
     const durationVal = document.getElementById('det-duration').value;
     const now = new Date().toISOString();
 

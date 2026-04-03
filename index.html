@@ -6,6 +6,7 @@
   <title>Todos</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { overflow-x: hidden; }
 
     :root {
       --bg: #f5f5f0;
@@ -85,6 +86,52 @@
     }
 
     .add-box button:active { opacity: .75; }
+
+    .add-when {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .add-when-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .add-when-btns {
+      display: flex;
+      gap: 6px;
+    }
+
+    .add-when-btns button {
+      padding: 6px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: border-color .15s, color .15s, background .15s;
+    }
+
+    .add-when-btns button.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0,0,0,0.04);
+    }
+
+    .add-when-date {
+      font-size: 12px;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
 
     .add-sliders {
       margin-top: 20px;
@@ -495,6 +542,7 @@
     .detail-body {
       flex: 1;
       overflow-y: auto;
+      overflow-x: hidden;
       padding: 20px 20px 0;
       display: flex;
       flex-direction: column;
@@ -775,6 +823,16 @@
     <button onclick="addTodo()">Add</button>
   </div>
 
+  <div class="add-when">
+    <span class="add-when-label">When?</span>
+    <div class="add-when-btns">
+      <button type="button" id="add-when-today" onclick="setAddWhen('today')">Today</button>
+      <button type="button" id="add-when-soon"  onclick="setAddWhen('soon')">Soon</button>
+      <button type="button" id="add-when-later" onclick="setAddWhen('later')">Later</button>
+    </div>
+    <span class="add-when-date" id="add-when-display"></span>
+  </div>
+
   <div class="add-sliders">
     <div class="dread-slider-wrap">
       <div class="dread-slider-label">
@@ -974,6 +1032,30 @@
     scoreEl.style.color = c.solid;
   }
 
+  let addWhenDate = null;
+
+  function setAddWhen(preset) {
+    const now = new Date();
+    let d;
+    if (preset === 'today') {
+      d = new Date(now);
+    } else if (preset === 'soon') {
+      // random day 1–14 days from now
+      const days = 1 + Math.floor(Math.random() * 14);
+      d = new Date(now.getTime() + days * 86400000);
+    } else {
+      // random day 15–60 days from now
+      const days = 15 + Math.floor(Math.random() * 46);
+      d = new Date(now.getTime() + days * 86400000);
+    }
+    addWhenDate = d.toISOString().slice(0, 10);
+    const label = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    document.getElementById('add-when-display').textContent = label;
+    ['today', 'soon', 'later'].forEach(p => {
+      document.getElementById('add-when-' + p).classList.toggle('active', p === preset);
+    });
+  }
+
   function setTimeShortcut(time) {
     const sel = document.getElementById('det-action-time');
     sel.value = time;
@@ -1039,10 +1121,11 @@
 
     const dread = parseInt(document.getElementById('add-dread').value, 10) || 0;
     const joy   = parseInt(document.getElementById('add-joy').value,   10) || 0;
+    const action_start = addWhenDate ? new Date(addWhenDate + 'T09:00').toISOString() : null;
 
     const { data, error } = await db
       .from('todos')
-      .insert({ text, done: false, dread, joy })
+      .insert({ text, done: false, dread, joy, action_start })
       .select()
       .single();
     if (error) { console.error(error); return; }
@@ -1055,6 +1138,9 @@
     document.getElementById('add-joy').value   = 0;
     updateDreadSlider(0, 'add');
     updateJoySlider(0, 'add');
+    addWhenDate = null;
+    document.getElementById('add-when-display').textContent = '';
+    ['today', 'soon', 'later'].forEach(p => document.getElementById('add-when-' + p).classList.remove('active'));
   }
 
   function renderRecents() {

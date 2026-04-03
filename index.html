@@ -1042,8 +1042,8 @@
     if (preset === 'today') {
       d = new Date(now);
     } else if (preset === 'soon') {
-      // random day 1–14 days from now
-      const days = 1 + Math.floor(Math.random() * 14);
+      // random day 1–7 days from now
+      const days = 1 + Math.floor(Math.random() * 7);
       d = new Date(now.getTime() + days * 86400000);
     } else {
       // random day 15–60 days from now
